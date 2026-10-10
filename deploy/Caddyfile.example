@@ -1,0 +1,22 @@
+# Reference Caddy config for the server (/etc/caddy/Caddyfile).
+# Caddy gets and renews the Let's Encrypt certificate automatically and
+# redirects http -> https. It also sets X-Forwarded-For / X-Forwarded-Proto,
+# which the app uses for login rate limiting and the Secure cookie flag.
+#
+# Apply:  sudo cp Caddyfile.example /etc/caddy/Caddyfile && sudo caddy validate --config /etc/caddy/Caddyfile && sudo systemctl reload caddy
+
+quant.example.com {
+	encode gzip
+	# Model "test" calls can take minutes (slow reasoning models).
+	reverse_proxy 127.0.0.1:5611 {
+		transport http {
+			response_header_timeout 15m
+		}
+	}
+	log {
+		output file /var/log/caddy/quant.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+	}
+}

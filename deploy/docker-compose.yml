@@ -1,0 +1,38 @@
+# easonxyi-quantlab deployment for a single server. HTTPS is terminated by Caddy on the host (deploy/Caddyfile.example).
+# Usage (on the server, inside the repo):  cd deploy && docker compose up -d --build
+#
+# Files that live ONLY on the server (never committed):
+#   deploy/.env                      API keys + ARENA_PASSWORD (template: deploy/.env.example)
+#   deploy/config/arena.config.json  arena config (template: backend/arena.config.example.json)
+#   deploy/data/                     SQLite database (persisted across rebuilds)
+services:
+  arena:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: easonxyi-quantlab:latest
+    container_name: quantlab
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: Asia/Shanghai
+      DATABASE_PATH: /app/data/data.db
+      ARENA_CONFIG: /app/config/arena.config.json
+    ports:
+      # Only reachable from this host: the public entry is Caddy (HTTPS) at
+      # https://quant.example.com, which proxies to 127.0.0.1:5611. Set
+      # ARENA_BIND=0.0.0.0 in deploy/.env only if you really need plain http on :5611.
+      - "${ARENA_BIND:-127.0.0.1}:5611:5611"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5611/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 60s
+      timeout: 10s
+      retries: 3

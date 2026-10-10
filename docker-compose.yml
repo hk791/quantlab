@@ -1,0 +1,4 @@
+# 在 deploy/.env 与 deploy/config/arena.config.json 准备好后运行：
+# docker compose up -d --build
+include:
+  - deploy/docker-compose.yml

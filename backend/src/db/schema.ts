@@ -1,0 +1,296 @@
+/**
+ * Drizzle table definitions.
+ *
+ * These mirror the SQLite schema originally produced by SQLAlchemy
+ * (see `ensureSchema()` in ./client.ts, which owns the actual DDL).
+ * Drizzle is used here purely for typed queries — we never emit DDL from it,
+ * so the on-disk schema stays byte-identical to what the Python app created.
+ *
+ * Type mapping notes:
+ *  - DECIMAL(p,s) / FLOAT -> real(). SQLite has no true DECIMAL, and the
+ *    Python code converted every read through float(), so this is equivalent.
+ *  - TIMESTAMP / DATETIME / DATE -> text(). Existing rows hold naive-UTC
+ *    strings ('YYYY-MM-DD HH:MM:SS[.ffffff]'); keeping them as text preserves
+ *    round-tripping with the data already in data.db.
+ */
+import { sql } from 'drizzle-orm'
+import {
+  index,
+  integer,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from 'drizzle-orm/sqlite-core'
+
+const createdAt = () =>
+  text('created_at').default(sql`CURRENT_TIMESTAMP`)
+const updatedAt = () =>
+  text('updated_at').default(sql`CURRENT_TIMESTAMP`)
+
+export const users = sqliteTable(
+  'users',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    username: text('username').notNull(),
+    email: text('email'),
+    passwordHash: text('password_hash'),
+    isActive: text('is_active').notNull().default('true'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_users_id').on(t.id),
+  }),
+)
+
+export const accounts = sqliteTable(
+  'accounts',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull(),
+    version: text('version').notNull().default('v1'),
+    name: text('name').notNull(),
+    accountType: text('account_type').notNull().default('AI'),
+    isActive: text('is_active').notNull().default('true'),
+    model: text('model').default('gpt-4'),
+    baseUrl: text('base_url').default('https://api.openai.com/v1'),
+    apiKey: text('api_key'),
+    initialCapital: real('initial_capital').notNull().default(10000),
+    currentCash: real('current_cash').notNull().default(10000),
+    frozenCash: real('frozen_cash').notNull().default(0),
+    marginUsed: real('margin_used').notNull().default(0),
+    maintenanceMarginRatio: real('maintenance_margin_ratio')
+      .notNull()
+      .default(0.5),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_accounts_id').on(t.id),
+  }),
+)
+
+export const userAuthSessions = sqliteTable(
+  'user_auth_sessions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull(),
+    sessionToken: text('session_token').notNull(),
+    expiresAt: text('expires_at').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => ({
+    tokenIdx: uniqueIndex('ix_user_auth_sessions_session_token').on(
+      t.sessionToken,
+    ),
+    idIdx: index('ix_user_auth_sessions_id').on(t.id),
+  }),
+)
+
+export const positions = sqliteTable(
+  'positions',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    version: text('version').notNull().default('v1'),
+    accountId: integer('account_id').notNull(),
+    symbol: text('symbol').notNull(),
+    name: text('name').notNull(),
+    market: text('market').notNull(),
+    quantity: real('quantity').notNull().default(0),
+    availableQuantity: real('available_quantity').notNull().default(0),
+    avgCost: real('avg_cost').notNull().default(0),
+    /** Weighted-average leverage across the fills that built this position. */
+    leverage: integer('leverage').notNull().default(1),
+    /** 'LONG' | 'SHORT' for leveraged positions. */
+    side: text('side'),
+    accumulatedInterest: real('accumulated_interest').notNull().default(0),
+    lastInterestTime: text('last_interest_time'),
+    updateTime: text('update_time'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_positions_id').on(t.id),
+  }),
+)
+
+export const orders = sqliteTable(
+  'orders',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    version: text('version').notNull().default('v1'),
+    accountId: integer('account_id').notNull(),
+    orderNo: text('order_no').notNull(),
+    symbol: text('symbol').notNull(),
+    name: text('name').notNull(),
+    market: text('market').notNull().default('CRYPTO'),
+    side: text('side').notNull(),
+    orderType: text('order_type').notNull(),
+    price: real('price'),
+    quantity: real('quantity').notNull(),
+    /** 1 for spot, >1 for leverage. */
+    leverage: integer('leverage').notNull().default(1),
+    filledQuantity: real('filled_quantity').notNull().default(0),
+    status: text('status').notNull(),
+    orderTime: text('order_time'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_orders_id').on(t.id),
+  }),
+)
+
+export const trades = sqliteTable(
+  'trades',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    orderId: integer('order_id').notNull(),
+    accountId: integer('account_id').notNull(),
+    symbol: text('symbol').notNull(),
+    name: text('name').notNull(),
+    market: text('market').notNull().default('CRYPTO'),
+    side: text('side').notNull(),
+    price: real('price').notNull(),
+    quantity: real('quantity').notNull(),
+    commission: real('commission').notNull().default(0),
+    /** Open/close taker fee. */
+    takerFee: real('taker_fee').notNull().default(0),
+    /** Interest realised by this particular fill. */
+    interestCharged: real('interest_charged').notNull().default(0),
+    tradeTime: text('trade_time').default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => ({
+    idIdx: index('ix_trades_id').on(t.id),
+  }),
+)
+
+export const tradingConfigs = sqliteTable(
+  'trading_configs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    version: text('version').notNull().default('v1'),
+    market: text('market').notNull(),
+    minCommission: real('min_commission').notNull(),
+    commissionRate: real('commission_rate').notNull(),
+    exchangeRate: real('exchange_rate').notNull().default(1),
+    minOrderQuantity: integer('min_order_quantity').notNull().default(1),
+    lotSize: integer('lot_size').notNull().default(1),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_trading_configs_id').on(t.id),
+  }),
+)
+
+export const systemConfigs = sqliteTable(
+  'system_configs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    key: text('key').notNull(),
+    value: text('value'),
+    description: text('description'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_system_configs_id').on(t.id),
+  }),
+)
+
+export const cryptoPrices = sqliteTable(
+  'crypto_prices',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    symbol: text('symbol').notNull(),
+    market: text('market').notNull().default('CRYPTO'),
+    price: real('price').notNull(),
+    /** 'YYYY-MM-DD' */
+    priceDate: text('price_date').notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => ({
+    symbolIdx: index('ix_crypto_prices_symbol').on(t.symbol),
+    dateIdx: index('ix_crypto_prices_price_date').on(t.priceDate),
+    idIdx: index('ix_crypto_prices_id').on(t.id),
+  }),
+)
+
+export const cryptoKlines = sqliteTable(
+  'crypto_klines',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    symbol: text('symbol').notNull(),
+    market: text('market').notNull().default('CRYPTO'),
+    /** 1m, 5m, 15m, 30m, 1h, 1d */
+    period: text('period').notNull(),
+    timestamp: integer('timestamp').notNull(),
+    datetimeStr: text('datetime_str').notNull(),
+    openPrice: real('open_price'),
+    highPrice: real('high_price'),
+    lowPrice: real('low_price'),
+    closePrice: real('close_price'),
+    volume: real('volume'),
+    amount: real('amount'),
+    change: real('change'),
+    percent: real('percent'),
+    createdAt: createdAt(),
+  },
+  (t) => ({
+    timestampIdx: index('ix_crypto_klines_timestamp').on(t.timestamp),
+    symbolIdx: index('ix_crypto_klines_symbol').on(t.symbol),
+    idIdx: index('ix_crypto_klines_id').on(t.id),
+  }),
+)
+
+export const aiDecisionLogs = sqliteTable(
+  'ai_decision_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    accountId: integer('account_id').notNull(),
+    decisionTime: text('decision_time').default(sql`CURRENT_TIMESTAMP`),
+    reason: text('reason').notNull(),
+    /** open | close | hold */
+    operation: text('operation').notNull(),
+    symbol: text('symbol'),
+    prevPortion: real('prev_portion').notNull().default(0),
+    targetPortion: real('target_portion').notNull(),
+    totalBalance: real('total_balance').notNull(),
+    executed: text('executed').notNull().default('false'),
+    orderId: integer('order_id'),
+    leverage: integer('leverage').notNull().default(1),
+    createdAt: createdAt(),
+  },
+  (t) => ({
+    idIdx: index('ix_ai_decision_logs_id').on(t.id),
+    decisionTimeIdx: index('ix_ai_decision_logs_decision_time').on(
+      t.decisionTime,
+    ),
+  }),
+)
+
+export type User = typeof users.$inferSelect
+export type Account = typeof accounts.$inferSelect
+export type Position = typeof positions.$inferSelect
+export type Order = typeof orders.$inferSelect
+export type Trade = typeof trades.$inferSelect
+export type TradingConfig = typeof tradingConfigs.$inferSelect
+export type SystemConfig = typeof systemConfigs.$inferSelect
+export type CryptoPrice = typeof cryptoPrices.$inferSelect
+export type CryptoKline = typeof cryptoKlines.$inferSelect
+export type AIDecisionLog = typeof aiDecisionLogs.$inferSelect
+
+/** CRYPTO market trading configuration constants */
+export const CRYPTO_MIN_COMMISSION = 0.1
+export const CRYPTO_COMMISSION_RATE = 0.001
+export const CRYPTO_MIN_ORDER_QUANTITY = 0.0001
+export const CRYPTO_LOT_SIZE = 0.0001
+
+/** Leverage trading constants (Hyperliquid-style) */
+export const CRYPTO_TAKER_FEE_RATE = 0.0007
+export const CRYPTO_INTEREST_RATE_HOURLY = 0.0000125
+export const CRYPTO_MAX_LEVERAGE = 50
+export const CRYPTO_MAINTENANCE_MARGIN_RATIO = 0.5

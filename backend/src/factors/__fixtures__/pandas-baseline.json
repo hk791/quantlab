@@ -1,0 +1,110 @@
+{
+  "momentum": [
+    {
+      "Symbol": "BBB",
+      "Momentum": 3.090264304537139,
+      "Momentum Score": 0.9979349396021624
+    },
+    {
+      "Symbol": "AAA",
+      "Momentum": 2.2296718935359316,
+      "Momentum Score": 0.9885623795826255
+    },
+    {
+      "Symbol": "EEE",
+      "Momentum": 0.13716515628053474,
+      "Momentum Score": 0.5681556799538503
+    },
+    {
+      "Symbol": "DDD",
+      "Momentum": 0.049006749457117325,
+      "Momentum Score": 0.5244837772844081
+    },
+    {
+      "Symbol": "CCC",
+      "Momentum": -3.4687645783814767,
+      "Momentum Score": 0.0009697237207849096
+    }
+  ],
+  "support": [
+    {
+      "Symbol": "AAA",
+      "Support": -1.7980325533576116,
+      "Support Score": 0.14209072968213987,
+      "Days From Longest Candle": -39
+    },
+    {
+      "Symbol": "BBB",
+      "Support": 0.09992232048814935,
+      "Support Score": 0.5249598160322925,
+      "Days From Longest Candle": 1
+    },
+    {
+      "Symbol": "CCC",
+      "Support": -0.2336952540216689,
+      "Support Score": 0.4418406362770643,
+      "Days From Longest Candle": -2
+    }
+  ],
+  "merged": [
+    {
+      "Symbol": "BBB",
+      "Momentum": 3.090264304537139,
+      "Momentum Score": 0.9979349396021624,
+      "Support": 0.09992232048814935,
+      "Support Score": 0.5249598160322925,
+      "Days From Longest Candle": 1.0,
+      "Composite Score": 0.7614473778172275
+    },
+    {
+      "Symbol": "EEE",
+      "Momentum": 0.13716515628053474,
+      "Momentum Score": 0.5681556799538503,
+      "Support": null,
+      "Support Score": null,
+      "Days From Longest Candle": null,
+      "Composite Score": 0.5681556799538503
+    },
+    {
+      "Symbol": "AAA",
+      "Momentum": 2.2296718935359316,
+      "Momentum Score": 0.9885623795826255,
+      "Support": -1.7980325533576116,
+      "Support Score": 0.14209072968213987,
+      "Days From Longest Candle": -39.0,
+      "Composite Score": 0.5653265546323827
+    },
+    {
+      "Symbol": "DDD",
+      "Momentum": 0.049006749457117325,
+      "Momentum Score": 0.5244837772844081,
+      "Support": null,
+      "Support Score": null,
+      "Days From Longest Candle": null,
+      "Composite Score": 0.5244837772844081
+    },
+    {
+      "Symbol": "CCC",
+      "Momentum": -3.4687645783814767,
+      "Momentum Score": 0.0009697237207849096,
+      "Support": -0.2336952540216689,
+      "Support Score": 0.4418406362770643,
+      "Days From Longest Candle": -2.0,
+      "Composite Score": 0.22140517999892462
+    }
+  ],
+  "probes": {
+    "AAA": {
+      "days_from_longest": -39,
+      "momentum_simple": 2.2296718935359316
+    },
+    "BBB": {
+      "days_from_longest": 1,
+      "momentum_simple": 3.090264304537139
+    },
+    "CCC": {
+      "days_from_longest": -2,
+      "momentum_simple": -3.4687645783814767
+    }
+  }
+}

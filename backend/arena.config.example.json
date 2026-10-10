@@ -1,0 +1,83 @@
+{
+  "enabled": true,
+  "symbols": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "HYPE",
+    "XRP",
+    "ZEC"
+  ],
+  "decisionIntervalMinutes": 15,
+  "monitorIntervalSeconds": 30,
+  "snapshotIntervalMinutes": 5,
+  "initialCapital": 10000,
+  "takerFeeRate": 0.00045,
+  "chargeFunding": true,
+  "reasonLanguage": "zh",
+  "models": [
+    {
+      "name": "Mock 演示账户",
+      "model": "mock",
+      "enabled": true,
+      "strategy": "v1"
+    },
+    {
+      "name": "我的模型 V3.1",
+      "model": "your-model-id",
+      "baseUrl": "https://api.example.com/v1",
+      "apiKeyEnv": "MODEL_API_KEY",
+      "maxTokens": 16000,
+      "timeoutSeconds": 300,
+      "strategy": "v3.1",
+      "enabled": false
+    },
+    {
+      "name": "我的模型 EF1",
+      "model": "your-model-id",
+      "baseUrl": "https://api.example.com/v1",
+      "apiKeyEnv": "MODEL_API_KEY",
+      "maxTokens": 4000,
+      "strategy": "ema-filter-v1",
+      "enabled": false
+    }
+  ],
+  "baselines": [
+    "buy_hold_btc",
+    "ema_cross_btc",
+    "ema_rules_v1"
+  ],
+  "strategyV2": {
+    "cooldownMinutes": 60,
+    "minStopAtrMult": 1,
+    "notesMaxChars": 600
+  },
+  "strategyV3": {
+    "decisionIntervalMinutes": 60,
+    "stopAtrMult": 2,
+    "riskPerTradePct": 0.01,
+    "stopGuard": {
+      "count": 2,
+      "lookbackHours": 24,
+      "lockHours": 4
+    },
+    "notesMaxChars": 600
+  },
+  "risk": {
+    "maxLeverage": 5,
+    "maxMarginPctPerTrade": 0.25,
+    "maxTotalMarginPct": 0.8,
+    "maxOpenPositions": 5,
+    "defaultStopLossPct": 0.03,
+    "minStopLossPct": 0.003,
+    "maxStopLossPct": 0.1,
+    "maxHoldingHours": 48,
+    "noNewPositionDrawdownPct": 0.25,
+    "forceCloseDrawdownPct": 0.4,
+    "minOrderNotional": 20,
+    "slippageBps": 5
+  },
+  "reporting": {
+    "modelBilling": []
+  }
+}

@@ -1,0 +1,11 @@
+Quantlab is derived from etrobot/open-alpha-arena:
+https://github.com/etrobot/open-alpha-arena
+Based on upstream commit: 15d47c1 (refactor to pure ts).
+
+The upstream README declares the MIT license. At the time of this release,
+the upstream repository does not contain a standalone LICENSE file.
+Quantlab carries that declaration forward with the MIT text in LICENSE.
+Copyright in upstream code remains with its original authors and contributors.
+Quantlab additions and modifications are copyright (c) 2026 Quantlab contributors.
+
+Dependencies and external services retain their own licenses and terms.
